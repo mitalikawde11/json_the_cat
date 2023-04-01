@@ -3,29 +3,27 @@
 
 const request = require('request'); 
 
-const breedFetcher = function(breed) {
-  request('http://api.thecatapi.com/v1/breeds/', (error, response, body) => {
+const fetchBreedDescription = function(breedName, callback) {
+  request(`https://api.thecatapi.com/v1/breeds/search?q=${breedName}`, (error, response, body) => {
     if (error) {
-      return console.log(error);
+      return callback(error, null);
     }  
-    if (!breed) {
-      return console.log('enter breed name');
+    if (!breedName) {
+      return callback('enter breed name', null)
     }
-
     // convert string version into object using 'JSON.parse()'
     const data = JSON.parse(body);
-    // taking only starting 4 chars to search as id value
-    breedName = breed.slice(0, 4); 
-    //  loop over array of objects
-    for (const obj of data) {
-      if (obj.id === breedName.toLowerCase()) {
-        return console.log(obj.description);
-      }
+    
+    if(data.length === 0) {
+      return callback('invalid breed name', null)
+    }
+    // if data then return description of data. There is only one data as response for that breed that's why- data[0]
+    if(data) {
+      return callback(null, data[0].description);
     }
     
-    return console.log('Breed not found');
   })
-;}
+};
 
-const cmdLineArgbreed = process.argv[2];
-breedFetcher(cmdLineArgbreed);
+
+module.exports = { fetchBreedDescription };
